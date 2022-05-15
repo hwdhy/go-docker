@@ -15,7 +15,7 @@
 linux Cgroup提供了对一组进程及子进程的资源限制、控制和统计能力，包含CPU、内存、存储、网络等，通过
 Cgroup,可以方便的限制某个进程的资源占用，并且可以实时监控进程和统计信息。
 
-### OverlayFS文件系统
+### 3. OverlayFS文件系统
 - 简介
 
 OverlayFS是一种堆叠文件系统，它依赖并建立在其它的文件系统之上，不直接参与磁盘空间结构的划分，仅将原来文件系统中不同目录和文件进行“合并”。
@@ -41,14 +41,14 @@ mount -t overlay -o lowerdir=<lower>,upperdir=<upper>,workdir=<work> overlay mer
 mount -t overlay -o lowerdir=upper:lower overlay merge
 ```
 
-### 3. OverlayFS使用规则
+- OverlayFS使用规则
 
-- lowerdir和upperdir两个目录存在同名文件时，lowerdir的文件将会被隐藏，用户只能看到upperdir的文件。
-- lowerdir低优先级的同目录同名文件将会被隐藏。
-- 如果存在同名目录，那么lowerdir和upperdir目录中的内容将会合并。
-- 当用户修改mergedir中来自upperdir的数据时，数据将直接写入upperdir中原来目录中，删除文件也同理。
-- 当用户修改mergedir中来自lowerdir的数据时，lowerdir中内容均不会发生任何改变。因为lowerdir是只读的，用户想修改来自lowerdir数据时，overlayfs会首先拷贝一份lowerdir中文件副本到upperdir中。后续修改或删除将会在upperdir下的副本中进行，lowerdir中原文件将会被隐藏。
-- 如果某一个目录单纯来自lowerdir或者lowerdir和upperdir合并，默认无法进行rename系统调用。但是可以通过mv重命名。如果要支持rename，需要CONFIG_OVERLAY_FS_REDIRECT_DIR。
+  - lowerdir和upperdir两个目录存在同名文件时，lowerdir的文件将会被隐藏，用户只能看到upperdir的文件。
+  - lowerdir低优先级的同目录同名文件将会被隐藏。
+  - 如果存在同名目录，那么lowerdir和upperdir目录中的内容将会合并。
+  - 当用户修改mergedir中来自upperdir的数据时，数据将直接写入upperdir中原来目录中，删除文件也同理。
+  - 当用户修改mergedir中来自lowerdir的数据时，lowerdir中内容均不会发生任何改变。因为lowerdir是只读的，用户想修改来自lowerdir数据时，overlayfs会首先拷贝一份lowerdir中文件副本到upperdir中。后续修改或删除将会在upperdir下的副本中进行，lowerdir中原文件将会被隐藏。
+  - 如果某一个目录单纯来自lowerdir或者lowerdir和upperdir合并，默认无法进行rename系统调用。但是可以通过mv重命名。如果要支持rename，需要CONFIG_OVERLAY_FS_REDIRECT_DIR。
 ![img.png](img/img.png)
 
 ### 4. demo简单使用
