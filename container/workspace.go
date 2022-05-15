@@ -95,7 +95,7 @@ func CreateMountPoint(rootPath string, mergePath string) error {
 	if err != nil && os.IsNotExist(err) {
 		err = os.MkdirAll(mergePath, os.ModePerm)
 		if err != nil {
-			logrus.Errorf("mkdir mnt path err: %v", err)
+			logrus.Errorf("mkdir merge path err: %v", err)
 			return err
 		}
 	}
@@ -108,14 +108,14 @@ func CreateMountPoint(rootPath string, mergePath string) error {
 	logrus.Info("mount", " -t", " overlay", " -o ", dirs, " overlay ", mergePath)
 	cmd := exec.Command("mount", "-t", "overlay", "-o", dirs, "overlay", mergePath)
 	if err := cmd.Run(); err != nil {
-		logrus.Errorf("mnt cmd run err: %v", err)
+		logrus.Errorf("merge cmd run err: %v", err)
 		return err
 	}
 	return nil
 }
 
 // 宿主机和容器文件映射
-func mountVolume(rootPath, mntPath, volume string) {
+func mountVolume(rootPath, mergePath, volume string) {
 	if volume != "" {
 		volumes := strings.Split(volume, ":")
 		if len(volumes) > 1 {
@@ -129,7 +129,7 @@ func mountVolume(rootPath, mntPath, volume string) {
 
 			// 创建容器内挂载点
 			containerPath := volumes[1]
-			containerVolumePath := path.Join(mntPath, containerPath)
+			containerVolumePath := path.Join(mergePath, containerPath)
 			if _, err := os.Stat(containerVolumePath); err != nil && os.IsNotExist(err) {
 				if err := os.MkdirAll(containerVolumePath, os.ModePerm); err != nil {
 					logrus.Errorf("mkdir volume path path: %s, err: %v", containerVolumePath, err)
@@ -148,9 +148,9 @@ func mountVolume(rootPath, mntPath, volume string) {
 }
 
 // DeleteWorkSpace 删除容器工作空间
-func DeleteWorkSpace(rootPath, mntPath, volume string) error {
+func DeleteWorkSpace(rootPath, mergePath, volume string) error {
 	// 1。 卸载挂载点
-	err := unMountPoint(mntPath)
+	err := unMountPoint(mergePath)
 	if err != nil {
 		return err
 	}
@@ -166,20 +166,20 @@ func DeleteWorkSpace(rootPath, mntPath, volume string) error {
 	}
 
 	// 4. 删除宿主机和文件系统映射
-	deleteVolume(mntPath, volume)
+	deleteVolume(mergePath, volume)
 	return nil
 }
 
 // 卸载挂载点
 func unMountPoint(mergePath string) error {
 	if _, err := exec.Command("umount", mergePath).CombinedOutput(); err != nil {
-		logrus.Errorf("umount mnt err: %v", err)
+		logrus.Errorf("umount merge err: %v", err)
 		return err
 	}
 
 	err := os.RemoveAll(mergePath)
 	if err != nil {
-		logrus.Errorf("remove mnt path err: %v", err)
+		logrus.Errorf("remove merge path err: %v", err)
 		return err
 	}
 	return nil
@@ -198,11 +198,11 @@ func deleteWorkLayer(rootPath string) error {
 }
 
 // 删除宿主机和文件系统映射
-func deleteVolume(mntPath, volume string) {
+func deleteVolume(mergePath, volume string) {
 	if volume != "" {
 		volumes := strings.Split(volume, ":")
 		if len(volumes) > 1 {
-			containerPath := path.Join(mntPath, volumes[1])
+			containerPath := path.Join(mergePath, volumes[1])
 			if _, err := exec.Command("umount", containerPath).CombinedOutput(); err != nil {
 				logrus.Errorf("umount container path err: %v", err)
 			}
