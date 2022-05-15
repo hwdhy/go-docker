@@ -10,9 +10,9 @@ import (
 	"strings"
 )
 
-func Run(cmdArray []string, tty bool, res *subsystem.ResourceConfig, volume string) {
+func Run(cmdArray []string, tty bool, res *subsystem.ResourceConfig, volume string, containerName string) {
 	//创建隔离namespace的cmd
-	parentProcess, writePipe := container.NewParentProcess(tty, volume)
+	parentProcess, writePipe := container.NewParentProcess(tty, volume, containerName)
 	if parentProcess == nil {
 		logrus.Errorf("failed to new parent process")
 		return

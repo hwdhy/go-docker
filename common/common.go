@@ -9,3 +9,9 @@ const (
 	Work       = "work"
 	BinPath    = "/bin/"
 )
+
+const (
+	DefaultContainerInfoPath = "/var/run/docker/"
+	ContainerInfoFileName    = "config.json"
+	ContainerLogFileName     = "container.log"
+)

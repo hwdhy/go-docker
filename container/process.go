@@ -5,11 +5,12 @@ import (
 	"github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
+	"path"
 	"syscall"
 )
 
 // NewParentProcess 调用初始化函数，创建一个隔离namespace进程的Command，
-func NewParentProcess(tty bool, volume string) (*exec.Cmd, *os.File) {
+func NewParentProcess(tty bool, volume string, containerName string) (*exec.Cmd, *os.File) {
 	readPipe, writePipe, _ := os.Pipe()
 	//调用自身，传入init参数，执行initCommand
 	cmd := exec.Command("/proc/self/exe", "init")
@@ -22,6 +23,21 @@ func NewParentProcess(tty bool, volume string) (*exec.Cmd, *os.File) {
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
+	} else {
+		//日志写入文件
+		logDir := path.Join(common.DefaultContainerInfoPath, containerName)
+		if _, err := os.Stat(logDir); err != nil && os.IsNotExist(err) {
+			err = os.MkdirAll(logDir, os.ModePerm)
+			if err != nil {
+				logrus.Errorf("mkdir container log, err:%v", err)
+			}
+		}
+		logFileName := path.Join(logDir, common.ContainerLogFileName)
+		file, err := os.Create(logFileName)
+		if err != nil {
+			logrus.Errorf("create log file err:%v", err)
+		}
+		cmd.Stdout = file
 	}
 
 	cmd.ExtraFiles = []*os.File{

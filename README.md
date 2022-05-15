@@ -2,14 +2,14 @@
 
 ### 1. namespace隔离
 
-| namespace | 系统调用函数 | 隔离内容 |
-| --- | --- | --- |
-| UTS | CLONE_NEWUTS | 主机和域名 |
-| IPC | CLINE_NEWIPC | 信号量、消息队列、共享内存 |
-| PID | CLONE_NEWPID | 进程编号 |
-| Network | CLINE_NEWNET | 网络设备、网络栈、端口 |
-| Mount | CLINE_NEWNS | 挂载点（文件系统） |
-| User | CLINE_NEWUSER | 用户和用户组 |
+| namespace | 系统调用函数        | 隔离内容          |
+|-----------|---------------|---------------|
+| UTS       | CLONE_NEWUTS  | 主机和域名         |
+| IPC       | CLINE_NEWIPC  | 信号量、消息队列、共享内存 |
+| PID       | CLONE_NEWPID  | 进程编号          |
+| Network   | CLINE_NEWNET  | 网络设备、网络栈、端口   |
+| Mount     | CLINE_NEWNS   | 挂载点（文件系统）     |
+| User      | CLINE_NEWUSER | 用户和用户组        |
 
 ### 2. cgroup隔离
 linux Cgroup提供了对一组进程及子进程的资源限制、控制和统计能力，包含CPU、内存、存储、网络等，通过
@@ -73,7 +73,7 @@ mkdir upper work merge
 ```
 - 启动demo 
 ```shell
-root@Cater:/home/cater# ./go-docker run -v aaa:/aaa -it "ls -al /"
+root@Cater:/home/cater# ./go-docker run -v aaa:/aaa -name cater -it "ls -al /"
 {"level":"info","msg":"mount -t overlay -o lowerdir=/home/cater/busybox,upperdir=/home/cater/upper,workdir=/home/cater/work overlay /home/cater/merge/","time":"2022-05-15T21:54:08+08:00"}
 {"level":"info","msg":"init come on","time":"2022-05-15T21:54:08+08:00"}
 {"level":"info","msg":"command all is ls -al /","time":"2022-05-15T21:54:08+08:00"}

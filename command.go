@@ -29,6 +29,10 @@ var runCommand = cli.Command{
 			Usage: "cpuset limit",
 		},
 		cli.StringFlag{
+			Name:  "name",
+			Usage: "container name",
+		},
+		cli.StringFlag{
 			Name:  "v",
 			Usage: "docker volume",
 		},
@@ -40,6 +44,7 @@ var runCommand = cli.Command{
 		}
 		tty := context.Bool("it")
 		volume := context.String("v")
+		containerName := context.String("name")
 
 		res := &subsystem.ResourceConfig{
 			MemoryLimit: context.String("m"),
@@ -52,7 +57,7 @@ var runCommand = cli.Command{
 			cmdArray = append(cmdArray, arg)
 		}
 		// 入口函数
-		Run(cmdArray, tty, res, volume)
+		Run(cmdArray, tty, res, volume, containerName)
 		return nil
 	},
 }
@@ -63,5 +68,19 @@ var initCommand = cli.Command{
 	Action: func(context *cli.Context) error {
 		logrus.Infof("init come on")
 		return container.RunContainerInitProcess()
+	},
+}
+
+var logCommand = cli.Command{
+	Name:  "logs",
+	Usage: "look container log",
+	Action: func(context *cli.Context) error {
+		if len(context.Args()) < 1 {
+			return fmt.Errorf("missing container name")
+		}
+
+		containerName := context.Args().Get(0)
+		container.LookContainerLog(containerName)
+		return nil
 	},
 }
