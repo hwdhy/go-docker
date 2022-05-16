@@ -15,3 +15,9 @@ const (
 	ContainerInfoFileName    = "config.json"
 	ContainerLogFileName     = "container.log"
 )
+
+const (
+	Running = "running"
+	Stop    = "stopped"
+	Exit    = "exited"
+)

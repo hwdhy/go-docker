@@ -84,3 +84,12 @@ var logCommand = cli.Command{
 		return nil
 	},
 }
+
+var listCommand = cli.Command{
+	Name:  "ps",
+	Usage: "look container log",
+	Action: func(context *cli.Context) error {
+		container.ListContainerInfo()
+		return nil
+	},
+}

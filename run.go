@@ -11,6 +11,10 @@ import (
 )
 
 func Run(cmdArray []string, tty bool, res *subsystem.ResourceConfig, volume string, containerName string) {
+	containerID := container.GenContainerId(10)
+	if containerName == "" {
+		containerName = containerID
+	}
 	//创建隔离namespace的cmd
 	parentProcess, writePipe := container.NewParentProcess(tty, volume, containerName)
 	if parentProcess == nil {
@@ -22,6 +26,12 @@ func Run(cmdArray []string, tty bool, res *subsystem.ResourceConfig, volume stri
 		logrus.Errorf("parent start failed, err: %v", err)
 		return
 	}
+
+	err := container.RecordContainerInfo(parentProcess.Process.Pid, cmdArray, containerName, containerID)
+	if err != nil {
+		logrus.Errorf("record container info, err %v", err)
+	}
+
 	//添加资源限制
 	cGroupManager := cgroups.NewCGroupManager("go-docker")
 	//进程退出 清除资源限制文件
@@ -33,15 +43,21 @@ func Run(cmdArray []string, tty bool, res *subsystem.ResourceConfig, volume stri
 
 	//设置初始化命令
 	setInitCommand(cmdArray, writePipe)
-	//等待父进程结束
-	err := parentProcess.Wait()
-	if err != nil {
-		logrus.Errorf("parent wait err : %v", err)
-	}
 
-	err = container.DeleteWorkSpace(common.RootPath, common.Merge, volume)
-	if err != nil {
-		logrus.Errorf("delete work pace err: %v", err)
+	if tty {
+		//等待父进程结束
+		err = parentProcess.Wait()
+		if err != nil {
+			logrus.Errorf("parent wait err : %v", err)
+		}
+
+		err = container.DeleteWorkSpace(common.RootPath, common.Merge, volume)
+		if err != nil {
+			logrus.Errorf("delete work pace err: %v", err)
+		}
+
+		// 删除容器信息
+		container.DeleteContainerInfo(containerName)
 	}
 }
 
