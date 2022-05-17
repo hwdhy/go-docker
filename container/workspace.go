@@ -11,33 +11,33 @@ import (
 )
 
 // NewWorkSpace 创建容器运行时目录
-func NewWorkSpace(rootPath string, mergePath string, volume string) error {
+func NewWorkSpace(volume string, containerName string, imageName string) error {
 	// 1. 创建只读层
-	err := createReadOnlyLayer(rootPath)
+	err := createReadOnlyLayer(imageName)
 	if err != nil {
 		logrus.Errorf("create read only layer err: %v", err)
 		return err
 	}
 	// 2. 创建读写层
-	err = createUpperLayer(rootPath)
+	err = createUpperLayer(containerName)
 	if err != nil {
 		logrus.Errorf("create write layer err: %v", err)
 		return err
 	}
 	// 3. 创建工作层
-	err = createWorkLayer(rootPath)
+	err = createWorkLayer(containerName)
 	if err != nil {
 		logrus.Errorf("create work layer err: %v", err)
 		return err
 	}
 	// 4. 创建挂载点
-	err = CreateMountPoint(rootPath, mergePath)
+	err = CreateMountPoint(containerName, imageName)
 	if err != nil {
 		logrus.Errorf("create mount point err: %v", err)
 		return err
 	}
 	// 5. 设置宿主机与容器文件映射
-	mountVolume(rootPath, mergePath, volume)
+	mountVolume(containerName, imageName, volume)
 	return nil
 }
 
@@ -115,7 +115,7 @@ func CreateMountPoint(rootPath string, mergePath string) error {
 }
 
 // 宿主机和容器文件映射
-func mountVolume(rootPath, mergePath, volume string) {
+func mountVolume(containerName, imageName, volume string) {
 	if volume != "" {
 		volumes := strings.Split(volume, ":")
 		if len(volumes) > 1 {
@@ -129,7 +129,7 @@ func mountVolume(rootPath, mergePath, volume string) {
 
 			// 创建容器内挂载点
 			containerPath := volumes[1]
-			containerVolumePath := path.Join(mergePath, containerPath)
+			containerVolumePath := path.Join(common.Merge, containerName, containerPath)
 			if _, err := os.Stat(containerVolumePath); err != nil && os.IsNotExist(err) {
 				if err := os.MkdirAll(containerVolumePath, os.ModePerm); err != nil {
 					logrus.Errorf("mkdir volume path path: %s, err: %v", containerVolumePath, err)

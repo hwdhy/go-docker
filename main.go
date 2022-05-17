@@ -4,6 +4,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"os"
+
+	_ "docker_demo/nsenter"
 )
 
 const usage = "go-docker"
@@ -18,6 +20,11 @@ func main() {
 		initCommand,
 		logCommand,
 		listCommand,
+		commitCommand,
+		execCommand,
+		stopCommand,
+		removeCommand,
+		networkCommand,
 	}
 
 	app.Before = func(c *cli.Context) error {

@@ -10,7 +10,7 @@ import (
 )
 
 // NewParentProcess 调用初始化函数，创建一个隔离namespace进程的Command，
-func NewParentProcess(tty bool, volume string, containerName string) (*exec.Cmd, *os.File) {
+func NewParentProcess(tty bool, volume string, containerName string, imageName string, envs []string) (*exec.Cmd, *os.File) {
 	readPipe, writePipe, _ := os.Pipe()
 	//调用自身，传入init参数，执行initCommand
 	cmd := exec.Command("/proc/self/exe", "init")
@@ -44,7 +44,8 @@ func NewParentProcess(tty bool, volume string, containerName string) (*exec.Cmd,
 		readPipe,
 	}
 	// 创建工作空间
-	err := NewWorkSpace(common.RootPath, common.Merge, volume)
+	cmd.Env = append(cmd.Env, envs...)
+	err := NewWorkSpace(volume, containerName, imageName)
 	if err != nil {
 		logrus.Errorf("new work space err: %v", err)
 	}

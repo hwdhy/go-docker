@@ -16,14 +16,14 @@ import (
 )
 
 type ContainerInfo struct {
-	Pid         string `json:"pid"`     //容器init进程在宿主机上的pid
-	Id          string `json:"id"`      //容器ID
-	Command     string `json:"command"` //容器内init进程的运行命令
-	Name        string `json:"name"`
-	CreateTime  string `json:"create_time"`
-	Status      string `json:"status"`
-	Volume      string `json:"volume"`       //容器的数据卷
-	PortMapping string `json:"port_mapping"` //端口映射
+	Pid         string   `json:"pid"`     //容器init进程在宿主机上的pid
+	Id          string   `json:"id"`      //容器ID
+	Command     string   `json:"command"` //容器内init进程的运行命令
+	Name        string   `json:"name"`
+	CreateTime  string   `json:"create_time"`
+	Status      string   `json:"status"`
+	Volume      string   `json:"volume"`       //容器的数据卷
+	PortMapping []string `json:"port_mapping"` //端口映射
 }
 
 func RecordContainerInfo(containerPID int, cmdArray []string, containerName, containerID string) error {

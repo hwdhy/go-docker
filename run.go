@@ -5,18 +5,21 @@ import (
 	"docker_demo/cgroups/subsystem"
 	"docker_demo/common"
 	"docker_demo/container"
+	"docker_demo/network"
 	"github.com/sirupsen/logrus"
 	"os"
+	"strconv"
 	"strings"
 )
 
-func Run(cmdArray []string, tty bool, res *subsystem.ResourceConfig, volume string, containerName string) {
+func Run(cmdArray []string, tty bool, res *subsystem.ResourceConfig, volume string, containerName string,
+	imageName string, net string, envs []string, ports []string) {
 	containerID := container.GenContainerId(10)
 	if containerName == "" {
 		containerName = containerID
 	}
 	//创建隔离namespace的cmd
-	parentProcess, writePipe := container.NewParentProcess(tty, volume, containerName)
+	parentProcess, writePipe := container.NewParentProcess(tty, volume, containerName, imageName, envs)
 	if parentProcess == nil {
 		logrus.Errorf("failed to new parent process")
 		return
@@ -43,6 +46,25 @@ func Run(cmdArray []string, tty bool, res *subsystem.ResourceConfig, volume stri
 
 	//设置初始化命令
 	setInitCommand(cmdArray, writePipe)
+
+	if net != "" {
+		err = network.Init()
+		if err != nil {
+			logrus.Errorf("network init failed,err: %v", err)
+			return
+		}
+
+		containerInfo := &container.ContainerInfo{
+			Id:          containerID,
+			Pid:         strconv.Itoa(parentProcess.Process.Pid),
+			Name:        containerName,
+			PortMapping: ports,
+		}
+		if err := network.Connect(net, containerInfo); err != nil {
+			logrus.Errorf("connect network err: %v", err)
+			return
+		}
+	}
 
 	if tty {
 		//等待父进程结束
