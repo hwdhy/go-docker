@@ -48,7 +48,6 @@ func RecordContainerInfo(containerPID int, cmdArray []string, containerName, con
 	}
 	//创建容器信息文件
 	fileName := fmt.Sprintf("%s/%s", dir, common.ContainerInfoFileName)
-	logrus.Info("file name=======", fileName)
 	file, err := os.Create(fileName)
 	if err != nil {
 		logrus.Errorf("create config.json, fileName: %s, err: %v", fileName, err)

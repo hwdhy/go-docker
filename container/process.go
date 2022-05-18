@@ -9,7 +9,7 @@ import (
 	"syscall"
 )
 
-// NewParentProcess 调用初始化函数，创建一个隔离namespace进程的Command，
+// 调用初始化函数，创建一个隔离namespace进程的Command，
 func NewParentProcess(tty bool, volume string, containerName string, imageName string, envs []string) (*exec.Cmd, *os.File) {
 	readPipe, writePipe, _ := os.Pipe()
 	//调用自身，传入init参数，执行initCommand
@@ -49,7 +49,7 @@ func NewParentProcess(tty bool, volume string, containerName string, imageName s
 	if err != nil {
 		logrus.Errorf("new work space err: %v", err)
 	}
-	cmd.Dir = common.Merge
+	cmd.Dir = common.Merge + containerName
 
 	return cmd, writePipe
 }

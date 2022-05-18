@@ -3,7 +3,6 @@ package main
 import (
 	"docker_demo/cgroups"
 	"docker_demo/cgroups/subsystem"
-	"docker_demo/common"
 	"docker_demo/container"
 	"docker_demo/network"
 	"github.com/sirupsen/logrus"
@@ -73,7 +72,7 @@ func Run(cmdArray []string, tty bool, res *subsystem.ResourceConfig, volume stri
 			logrus.Errorf("parent wait err : %v", err)
 		}
 
-		err = container.DeleteWorkSpace(common.RootPath, common.Merge, volume)
+		err = container.DeleteWorkSpace(containerName, volume)
 		if err != nil {
 			logrus.Errorf("delete work pace err: %v", err)
 		}

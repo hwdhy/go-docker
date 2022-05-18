@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-// NewWorkSpace 创建容器运行时目录
+// 创建容器运行时目录
 func NewWorkSpace(volume string, containerName string, imageName string) error {
 	// 1. 创建只读层
 	err := createReadOnlyLayer(imageName)
@@ -42,19 +42,19 @@ func NewWorkSpace(volume string, containerName string, imageName string) error {
 }
 
 // 根据镜像创建只读层
-func createReadOnlyLayer(rootPath string) error {
-	busyBoxPath := path.Join(rootPath, common.Lower)
-	_, err := os.Stat(busyBoxPath)
+func createReadOnlyLayer(imageName string) error {
+	imagePath := path.Join(common.RootPath, imageName)
+	_, err := os.Stat(imagePath)
 	if err != nil && os.IsNotExist(err) {
-		err = os.MkdirAll(busyBoxPath, os.ModePerm)
+		err = os.MkdirAll(imagePath, os.ModePerm)
 		if err != nil {
-			logrus.Errorf("mkdir busybox,err: %v", err)
+			logrus.Errorf("mkdir image path err: %v", err)
 			return err
 		}
 	}
 
-	busyBoxTarPath := path.Join(rootPath, common.BusyBoxTar)
-	if _, err := exec.Command("tar", "-xvf", busyBoxTarPath, "-C", busyBoxPath).CombinedOutput(); err != nil {
+	imageTarPath := path.Join(common.RootPath, fmt.Sprintf("%s.tar", imageName))
+	if _, err := exec.Command("tar", "-xvf", imageTarPath, "-C", imagePath).CombinedOutput(); err != nil {
 		logrus.Errorf("tar busybox.tar, err:%v", err)
 		return err
 	}
@@ -62,8 +62,8 @@ func createReadOnlyLayer(rootPath string) error {
 }
 
 // 创建读写层
-func createUpperLayer(rootPath string) error {
-	upperLayerPath := path.Join(rootPath, common.Upper)
+func createUpperLayer(containerName string) error {
+	upperLayerPath := path.Join(common.RootPath, common.Upper, containerName)
 	_, err := os.Stat(upperLayerPath)
 	if err != nil && os.IsNotExist(err) {
 		err = os.MkdirAll(upperLayerPath, os.ModePerm)
@@ -76,8 +76,8 @@ func createUpperLayer(rootPath string) error {
 }
 
 // 创建工作层
-func createWorkLayer(rootPath string) error {
-	workLayerPath := path.Join(rootPath, common.Work)
+func createWorkLayer(containerName string) error {
+	workLayerPath := path.Join(common.RootPath, common.Work, containerName)
 	_, err := os.Stat(workLayerPath)
 	if err != nil && os.IsNotExist(err) {
 		err = os.MkdirAll(workLayerPath, os.ModePerm)
@@ -90,7 +90,8 @@ func createWorkLayer(rootPath string) error {
 }
 
 // CreateMountPoint 创建挂载点
-func CreateMountPoint(rootPath string, mergePath string) error {
+func CreateMountPoint(containerName string, imageName string) error {
+	mergePath := path.Join(common.Merge, containerName)
 	_, err := os.Stat(mergePath)
 	if err != nil && os.IsNotExist(err) {
 		err = os.MkdirAll(mergePath, os.ModePerm)
@@ -100,9 +101,9 @@ func CreateMountPoint(rootPath string, mergePath string) error {
 		}
 	}
 
-	lowerDir := rootPath + common.Lower
-	upperDir := rootPath + common.Upper
-	workDir := rootPath + common.Work
+	lowerDir := common.RootPath + imageName
+	upperDir := common.RootPath + common.Upper + "/" + containerName
+	workDir := common.RootPath + common.Work + "/" + containerName
 	dirs := fmt.Sprintf("lowerdir=%s,upperdir=%s,workdir=%s", lowerDir, upperDir, workDir)
 
 	logrus.Info("mount", " -t", " overlay", " -o ", dirs, " overlay ", mergePath)
@@ -147,33 +148,34 @@ func mountVolume(containerName, imageName, volume string) {
 	}
 }
 
-// DeleteWorkSpace 删除容器工作空间
-func DeleteWorkSpace(rootPath, mergePath, volume string) error {
+// 删除容器工作空间
+func DeleteWorkSpace(containerName, volume string) error {
 	// 1。 卸载挂载点
+	mergePath := path.Join(common.Merge, containerName)
 	err := unMountPoint(mergePath)
 	if err != nil {
 		return err
 	}
 	// 2. 删除读写层
-	err = deleteWriteLayer(rootPath)
+	err = deleteWriteLayer(path.Join(common.RootPath, common.Upper, containerName))
 	if err != nil {
 		return err
 	}
 	// 3. 删除工作层
-	err = deleteWorkLayer(rootPath)
+	err = deleteWorkLayer(path.Join(common.RootPath, common.Work, containerName))
 	if err != nil {
 		return err
 	}
 
 	// 4. 删除宿主机和文件系统映射
-	deleteVolume(mergePath, volume)
+	deleteVolume(containerName, volume)
 	return nil
 }
 
 // 卸载挂载点
 func unMountPoint(mergePath string) error {
 	if _, err := exec.Command("umount", mergePath).CombinedOutput(); err != nil {
-		logrus.Errorf("umount merge err: %v", err)
+		logrus.Errorf("umount merge path(%s) err: %v", mergePath, err)
 		return err
 	}
 
@@ -186,25 +188,25 @@ func unMountPoint(mergePath string) error {
 }
 
 // 删除读写层
-func deleteWriteLayer(rootPath string) error {
-	writerLayerPath := path.Join(rootPath, common.Upper)
+func deleteWriteLayer(upperPath string) error {
+	writerLayerPath := path.Join(upperPath, common.Upper)
 	return os.RemoveAll(writerLayerPath)
 }
 
 // 删除工作层
-func deleteWorkLayer(rootPath string) error {
-	workLayerPath := path.Join(rootPath, common.Work)
+func deleteWorkLayer(workPath string) error {
+	workLayerPath := path.Join(workPath, common.Work)
 	return os.RemoveAll(workLayerPath)
 }
 
 // 删除宿主机和文件系统映射
-func deleteVolume(mergePath, volume string) {
+func deleteVolume(containerName, volume string) {
 	if volume != "" {
 		volumes := strings.Split(volume, ":")
 		if len(volumes) > 1 {
-			containerPath := path.Join(mergePath, volumes[1])
+			containerPath := path.Join(common.Merge, containerName, volumes[1])
 			if _, err := exec.Command("umount", containerPath).CombinedOutput(); err != nil {
-				logrus.Errorf("umount container path err: %v", err)
+				logrus.Errorf("umount container path(%s) err: %v", containerPath, err)
 			}
 		}
 	}

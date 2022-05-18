@@ -11,7 +11,7 @@ import (
 	"syscall"
 )
 
-// RunContainerInitProcess 使用mount挂载proc文件系统，以便后面通过ps等命令查看当前进程资源的情况
+//使用mount挂载proc文件系统，以便后面通过ps等命令查看当前进程资源的情况
 func RunContainerInitProcess() error {
 	cmdArray := readUserCommand()
 	if cmdArray == nil || len(cmdArray) == 0 {
