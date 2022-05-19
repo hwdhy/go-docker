@@ -16,7 +16,8 @@ func NewParentProcess(tty bool, volume string, containerName string, imageName s
 	cmd := exec.Command("/proc/self/exe", "init")
 	//设置隔离信息
 	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS | syscall.CLONE_NEWNET | syscall.CLONE_NEWIPC,
+		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS |
+			syscall.CLONE_NEWNET | syscall.CLONE_NEWIPC,
 	}
 	//交互模式，日志写入控制台
 	if tty {

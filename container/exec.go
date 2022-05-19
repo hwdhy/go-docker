@@ -16,7 +16,7 @@ func ExecContainer(containerName string, cmdArray []string) {
 		logrus.Errorf("get container info err: %v", err)
 	}
 
-	cmd := exec.Command("proc/self/exe", "exec")
+	cmd := exec.Command("/proc/self/exe", "exec")
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr

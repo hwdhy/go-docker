@@ -21,6 +21,7 @@ func (d *BridgeNetworkDriver) Name() string {
 
 func (d *BridgeNetworkDriver) Create(subnet string, name string) (*Network, error) {
 	ip, ipRange, _ := net.ParseCIDR(subnet)
+	logrus.Info("===================", ip, "----", ipRange)
 	ipRange.IP = ip
 	n := &Network{
 		Name:    name,
@@ -189,6 +190,7 @@ func setupIPTables(bridgeName string, subnet *net.IPNet) error {
 	iptablesCmd := fmt.Sprintf("-t nat -A POSTROUTING -s %s ! -o %s -j MASQUERADE", subnet.String(), bridgeName)
 	cmd := exec.Command("iptables", strings.Split(iptablesCmd, " ")...)
 	//err := cmd.Run()
+	logrus.Info("cmd===", cmd)
 	output, err := cmd.Output()
 	if err != nil {
 		logrus.Errorf("iptables output: %v, err: %v", output, err)

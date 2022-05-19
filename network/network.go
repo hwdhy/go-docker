@@ -66,7 +66,7 @@ func (nw *Network) dump(dumpPath string) error {
 	nwPath := path.Join(dumpPath, nw.Name)
 	nwFile, err := os.OpenFile(nwPath, os.O_TRUNC|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
-		logrus.Errorf("error：", err)
+		logrus.Errorf("error：%v", err)
 		return err
 	}
 	defer nwFile.Close()
@@ -147,16 +147,20 @@ func Init() error {
 
 // 创建网络
 func CreateNetwork(driver, subnet, name string) error {
+	logrus.Info("CreateNetwork:", driver, subnet, name)
+
 	_, ipNet, err := net.ParseCIDR(subnet)
 	if err != nil {
 		logrus.Errorf("parse cidr, err: %v", err)
 		return err
 	}
+	logrus.Info("ipNet:", ipNet)
 	// 分配一个IP地址
 	ip, err := ipAllocator.Allocate(ipNet)
 	if err != nil {
 		logrus.Errorf("allocate ip, err: %v", err)
 	}
+	logrus.Info("ip:", ip)
 	ipNet.IP = ip
 
 	// 创建网络

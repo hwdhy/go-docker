@@ -120,23 +120,23 @@ var logCommand = cli.Command{
 var execCommand = cli.Command{
 	Name:  "exec",
 	Usage: "exec a command into container",
-	Action: func(ctx *cli.Context) error {
+	Action: func(context *cli.Context) error {
 		// 如果环境变量里面有 PID,那么则什么都不执行
 		pid := os.Getenv(common.EnvExecPid)
 		if pid != "" {
 			logrus.Infof("pid callback pid %s, gid: %d", pid, os.Getgid())
 			return nil
 		}
-		if len(ctx.Args()) < 2 {
+		if len(context.Args()) < 2 {
 			return fmt.Errorf("missing container name or command")
 		}
 
 		var cmdArray []string
-		for _, arg := range ctx.Args().Tail() {
+		for _, arg := range context.Args().Tail() {
 			cmdArray = append(cmdArray, arg)
 		}
 
-		containerName := ctx.Args().Get(0)
+		containerName := context.Args().Get(0)
 		container.ExecContainer(containerName, cmdArray)
 		return nil
 	},
@@ -173,11 +173,11 @@ var commitCommand = cli.Command{
 var stopCommand = cli.Command{
 	Name:  "stop",
 	Usage: "stop a container",
-	Action: func(ctx *cli.Context) error {
-		if len(ctx.Args()) < 1 {
+	Action: func(context *cli.Context) error {
+		if len(context.Args()) < 1 {
 			return fmt.Errorf("missing stop container name")
 		}
-		containerName := ctx.Args().Get(0)
+		containerName := context.Args().Get(0)
 		container.StopContainer(containerName)
 		return nil
 	},
@@ -186,11 +186,11 @@ var stopCommand = cli.Command{
 var removeCommand = cli.Command{
 	Name:  "rm",
 	Usage: "rm a container",
-	Action: func(ctx *cli.Context) error {
-		if len(ctx.Args()) < 1 {
+	Action: func(context *cli.Context) error {
+		if len(context.Args()) < 1 {
 			return fmt.Errorf("missing remove container name")
 		}
-		containerName := ctx.Args().Get(0)
+		containerName := context.Args().Get(0)
 		container.RemoveContainer(containerName)
 		return nil
 	},
@@ -215,7 +215,7 @@ var networkCommand = cli.Command{
 			},
 			Action: func(context *cli.Context) error {
 				if len(context.Args()) < 1 {
-					return fmt.Errorf("Missing network name")
+					return fmt.Errorf("missing network name")
 				}
 				err := network.Init()
 				if err != nil {
@@ -249,7 +249,7 @@ var networkCommand = cli.Command{
 			Usage: "remove container network",
 			Action: func(context *cli.Context) error {
 				if len(context.Args()) < 1 {
-					return fmt.Errorf("Missing network name")
+					return fmt.Errorf("missing network name")
 				}
 
 				err := network.Init()

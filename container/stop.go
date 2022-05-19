@@ -10,7 +10,7 @@ import (
 	"syscall"
 )
 
-// StopContainer 停止容器
+// 停止容器
 func StopContainer(containerName string) {
 	info, err := getContainerInfo(containerName)
 	if err != nil {
